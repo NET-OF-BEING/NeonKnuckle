@@ -1,0 +1,12 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Neon Knuckle
+Comment=Original retro arcade boxing — Dockside Circuit
+Exec=/home/panda/Documents/PythonScripts/NeonKnuckle/launch.sh
+Path=/home/panda/Documents/PythonScripts/NeonKnuckle
+Icon=/home/panda/Documents/PythonScripts/NeonKnuckle/assets/icon.png
+Terminal=false
+Categories=Game;SportsGame;
+StartupNotify=false
+StartupWMClass=neon-knuckle

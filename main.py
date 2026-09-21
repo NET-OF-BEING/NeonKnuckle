@@ -11,6 +11,8 @@ def main():
     parser.add_argument('--mute', action='store_true', help='Start with sound disabled')
     args = parser.parse_args()
     app = App()
+    import pygame as pg
+    print(f'Neon Knuckle ready: {pg.display.get_driver()}, {app.window.get_size()}', flush=True)
     if args.mute:
         app.audio.muted = True
     app.run()
