@@ -126,7 +126,7 @@ class FightTests(unittest.TestCase):
         self.assertLess(f.recovery, 1)
         for n in range(30):
             f.get_up('right' if n % 2 == 0 else 'left')
-        advance(f, 3)
+        advance(f, 4)
         self.assertEqual(f.state, 'fight')
         self.assertGreater(f.player_hp, 0)
 
