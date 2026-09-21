@@ -63,6 +63,14 @@ class FightTests(unittest.TestCase):
         self.assertGreater(f.player_hp, 90)
         self.assertLess(f.player_hp, 100)
 
+    def test_landed_opponent_attack_has_visible_strike_phase(self):
+        f = active()
+        telegraph(f)
+        advance(f, f.opponent_timer + .04)
+        self.assertGreater(f.strike_timer, 0)
+        advance(f, .3)
+        self.assertEqual(f.strike_timer, 0)
+
     def test_uppercut_breaks_block(self):
         f = active()
         for _ in range(6000):

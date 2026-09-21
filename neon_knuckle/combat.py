@@ -32,6 +32,7 @@ class Fight:
     block: bool = False
     player_flash: float = 0.0
     opponent_flash: float = 0.0
+    strike_timer: float = 0.0
     stun: float = 0.0
     recovery: float = 0.0
     recovery_hand: str = ''
@@ -98,7 +99,7 @@ class Fight:
             remaining -= tick
 
     def _tick(self, dt, defense):
-        for name in ('message_timer', 'player_flash', 'opponent_flash'):
+        for name in ('message_timer', 'player_flash', 'opponent_flash', 'strike_timer'):
             setattr(self, name, max(0, getattr(self, name) - dt))
         if self.state == 'intro':
             self.state_timer -= dt
@@ -174,6 +175,7 @@ class Fight:
             self._down('opponent')
 
     def _opponent_impact(self):
+        self.strike_timer = .18
         safe = (self.dodge_timer > 0 and
                 (self.attack == 'upper' or
                  self.dodge_direction == ('right' if self.attack == 'left' else 'left')))
