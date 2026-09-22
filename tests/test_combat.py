@@ -24,6 +24,53 @@ def telegraph(fight):
 
 
 class FightTests(unittest.TestCase):
+    def test_reacting_to_cue_and_only_countering_can_win(self):
+        for mode, delay in (('practice', .2), ('practice', .4), ('arcade', .12)):
+            with self.subTest(mode=mode, delay=delay):
+                f = Fight(difficulty=mode)
+                for _ in range(120*240):
+                    if f.state == 'fight':
+                        if (f.dodge_now and f.dodge_timer <= 0
+                                and f.opponent_timer <= f.dodge_duration-.1-delay):
+                            f.dodge('left' if f.attack == 'right' else 'right')
+                        elif f.opponent_state == 'recover' and f.dodge_timer <= 0:
+                            f.punch('left', high=True, power=f.power >= 100)
+                    f.step(1/120)
+                    f.events.clear()
+                    if f.state == 'result':
+                        break
+                self.assertEqual(f.winner, 'player')
+                self.assertEqual(f.player_hp, 100)
+                self.assertGreater(f.counters, 0)
+
+    def test_taking_or_blocking_a_hit_does_not_award_counter_bonus(self):
+        for defense in (None, 'block'):
+            with self.subTest(defense=defense):
+                f = Fight(state='fight', opponent_state='windup', opponent_timer=.01)
+                advance(f, .35, defense)
+                f.step(1/120)
+                self.assertTrue(f.punch('left'))
+                advance(f, .15)
+                self.assertEqual(f.opponent_hp, 97)
+                self.assertEqual(f.counters, 0)
+                self.assertEqual(f.power, 5)
+
+    def test_blind_body_punching_loses_even_with_getups(self):
+        for mode in ('practice', 'arcade'):
+            with self.subTest(mode=mode):
+                f = Fight(difficulty=mode)
+                for tick in range(60*240):
+                    if f.state == 'fight':
+                        f.punch('left')
+                    elif f.state == 'player_down':
+                        f.get_up('left' if tick % 2 else 'right')
+                    f.step(1/60)
+                    f.events.clear()
+                    if f.state == 'result':
+                        break
+                self.assertEqual(f.winner, 'opponent')
+                self.assertEqual(f.counters, 0)
+
     def test_practice_dodge_handles_earlier_reactions(self):
         for attack in ('left', 'right', 'upper'):
             for delay in (0, .2, .4):

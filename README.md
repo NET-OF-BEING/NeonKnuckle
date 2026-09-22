@@ -47,6 +47,9 @@ controllers may require an SDL mapping. Physical controller play has not been te
   0.55 / 0.26 seconds before impact respectively. Holding a direction does not
   repeat the dodge; release and tap again for the next attack.
 - Counter during **OPEN!** for extra damage and power. A full meter unlocks Space.
+- Only a successful dodge opens the counter window; taking or blocking a punch
+  does not. Ordinary clean punches deal 3 damage, dodge counters deal 12, and
+  power counters deal 29. Repeated body punches alone are a losing strategy.
 - When Brick guards his head, punch his body. When he guards low, hold Up to aim high.
 - Three knockdowns produce a TKO. Alternate punches before the ten-count to get up.
 - After three minutes, knockdowns decide the winner, then remaining health. A tie

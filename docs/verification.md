@@ -58,3 +58,14 @@ Directional DODGE NOW cue begins 0.55 seconds before impact in Practice and
 All 23 unit tests and the Arcade win/loss playthrough passed. Nine additional
 SDL Practice scenarios covered hooks/uppercuts with immediate, 0.2-second and
 0.4-second reactions. Rendered cue/help inspected; no desktop restart performed.
+
+## 2026-09-22 combat balance
+
+Only successfully evaded attacks open bonus counter damage/power and bypass
+guard. The opening closes after recovery or knockdown. Ordinary punches now
+deal 3 damage (previously 4); dodge counters remain 12 and power counters 29.
+All 26 tests passed, including blind body-punch spam losing in both modes even
+with get-ups, and counter-only wins at 0.2/0.4-second Practice and 0.12-second
+Arcade cue reaction delays. The SDL playthrough passed: 10,230-point TKO at
+14.07 fight seconds, 100 HP, 12 counters and five dodges; rematch count-out passed.
+No human playtest or live desktop restart performed.

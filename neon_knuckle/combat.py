@@ -16,6 +16,7 @@ class Fight:
     opponent_downs: int = 0
     opponent_state: str = 'idle'
     opponent_timer: float = 1.1
+    counter_open: bool = False
     attack: str = 'left'
     attack_index: int = 0
     guard: str = 'high'
@@ -147,6 +148,7 @@ class Fight:
             self._opponent_impact()
         elif self.opponent_state == 'recover' and self.opponent_timer <= 0:
             self.opponent_state = 'idle'
+            self.counter_open = False
             self.opponent_timer = .9 - self.opponent_downs * .13
 
     @property
@@ -164,13 +166,13 @@ class Fight:
         return base + (.28 if self.difficulty == 'practice' else 0) - self.opponent_downs * .08
 
     def _impact(self):
-        counter = self.opponent_state == 'recover'
+        counter = self.opponent_state == 'recover' and self.counter_open
         guarded = not counter and ((self.guard == 'high') == self.punch_high)
         if guarded:
             self.emit('blocked', target='opponent')
             self.say('GUARD UP - GO TO THE BODY' if self.guard == 'high' else 'AIM HIGH: HOLD UP')
             return
-        damage = (29 if counter else 15) if self.punch_power else (12 if counter else 4)
+        damage = (29 if counter else 15) if self.punch_power else (12 if counter else 3)
         self.opponent_hp = max(0, self.opponent_hp - damage)
         self.opponent_flash = .22
         self.landed += 1
@@ -189,6 +191,7 @@ class Fight:
                 (self.attack == 'upper' or
                  self.dodge_direction == ('right' if self.attack == 'left' else 'left')))
         self.opponent_state = 'recover'
+        self.counter_open = safe
         self.opponent_timer = 1.05 if safe else .65
         if safe:
             self.dodges += 1
@@ -229,6 +232,7 @@ class Fight:
         self.punch_timer = self.dodge_timer = 0
         self.pending_punch = False
         self.block = False
+        self.counter_open = False
         self.emit('knockdown')
 
     def _count(self, dt):
