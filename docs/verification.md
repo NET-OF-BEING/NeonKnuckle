@@ -69,3 +69,11 @@ with get-ups, and counter-only wins at 0.2/0.4-second Practice and 0.12-second
 Arcade cue reaction delays. The SDL playthrough passed: 10,230-point TKO at
 14.07 fight seconds, 100 HP, 12 counters and five dodges; rematch count-out passed.
 No human playtest or live desktop restart performed.
+
+## 2026-09-22 animation readability
+
+Animation update: progressive hook wind-ups and uppercut crouch, strike retraction, smoother player punches synchronized to impact (including power shots), larger striking gloves and player recoil. Attack poses stay visible during hit flashes. Knockdowns accelerate onto the canvas; count/recovery UI moved above the action.
+
+26 tests and SDL win/loss playthrough passed with unchanged combat results.
+Rendered attack/fall phase sheets and revised knockdown overlay inspected.
+No live desktop restart or human playtest.

@@ -185,7 +185,15 @@ class Art:
         s = pg.Surface((192, 226), pg.SRCALPHA)
         skin, light, shade, deep = '#d69a74', '#f6c294', '#aa6657', '#794c4c'
         bob = int(math.sin(t * 4) * 2) if pose == 'idle' else 0
-        lean = (-8 if attack == 'left' else 8) if pose == 'windup' else 0
+        progress = max(0, min(1, progress))
+        lean = 0
+        if pose == 'windup':
+            lean = int((-1 if attack == 'left' else 1) * (4 + 10*progress))
+            if attack == 'upper':
+                lean = 0
+                bob = int(5 + 10*progress)
+        elif pose == 'strike':
+            lean = int((1 if attack == 'left' else -1) * 9 * math.sin(progress*math.pi))
         if pose == 'hit':
             lean = 5
         # Boots and calves.
@@ -257,19 +265,25 @@ class Art:
             left, right = (64, 115), (129, 115)
         elif pose == 'windup':
             if attack == 'left':
-                left = (26, 71)
+                left = (int(43-17*progress), int(85-22*progress))
+                right = (121, 61)
             elif attack == 'right':
-                right = (165, 71)
+                right = (int(149+17*progress), int(85-22*progress))
+                left = (72, 61)
             else:
-                right = (132, 133)
-                left = (60, 115)
+                right = (132, int(105+29*progress))
+                left = (64, 94)
         elif pose == 'strike':
+            # Full extension at impact, followed by a quick return to guard.
+            reach = 1-progress*progress
             if attack == 'left':
-                left = (86, 130)
+                left = (int(26+60*reach), int(63+67*reach))
+                right = (121, 61)
             elif attack == 'right':
-                right = (106, 130)
+                right = (int(166-60*reach), int(63+67*reach))
+                left = (72, 61)
             else:
-                right = (99, 83)
+                right = (int(132-33*reach), int(134-64*reach))
         elif pose == 'hit':
             left, right = (36, 106), (156, 105)
         for shoulder, elbow, hand in (((59, 85), (39, 114), left), ((133, 85), (153, 114), right)):
@@ -286,7 +300,7 @@ class Art:
             s.blit(tint, (0, 0), special_flags=pg.BLEND_RGBA_ADD)
         return s
 
-    def player(self, t=0, hand='left', high=False, punch=0, block=False, hurt=False):
+    def player(self, t=0, hand='left', high=False, punch=0, block=False, hurt=False, power=False):
         s = pg.Surface((140, 160), pg.SRCALPHA)
         skin, light, shade = '#be8b76', '#ecc2a0', '#805568'
         # Back-facing athletic silhouette, gloves kept outside the central sightline.
@@ -314,9 +328,18 @@ class Art:
         left, right = (23, 76), (116, 77)
         if block:
             left, right = (43, 38), (95, 38)
+        elif hurt:
+            left, right = (17, 92), (122, 94)
+        extension = 0
         if punch > 0:
-            extension = math.sin(min(1, punch / .23) * math.pi)
-            target = (57 if hand == 'left' else 82, int((17 if high else 52) - 25 * extension))
+            duration, impact = (.32, .13) if power else (.23, .10)
+            elapsed = max(0, duration-punch)
+            extension = (elapsed/impact if elapsed <= impact else
+                         max(0, (duration-elapsed)/(duration-impact)))
+            extension = math.sin(extension*math.pi/2)
+            rest = left if hand == 'left' else right
+            target = (int(rest[0]+((57 if hand == 'left' else 82)-rest[0])*extension),
+                      int(rest[1]+((16 if high else 48)-rest[1])*extension))
             if hand == 'left':
                 left = target
             else:
@@ -325,7 +348,9 @@ class Art:
             pg.draw.lines(s, INK, False, [shoulder, elbow, glove_pos], 15)
             pg.draw.lines(s, shade, False, [shoulder, elbow, glove_pos], 12)
             pg.draw.lines(s, skin, False, [shoulder, elbow, glove_pos], 8)
-            glove(s, glove_pos, '#2488a3', '#78e8dc', .82)
+            active = punch > 0 and glove_pos == (left if hand == 'left' else right)
+            glove(s, glove_pos, '#2488a3', '#78e8dc',
+                  .82 + (.3 if power else .13)*extension if active else .82)
         return s
 
     def portrait(self, who, size=(104, 108)):

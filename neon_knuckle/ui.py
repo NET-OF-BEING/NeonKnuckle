@@ -132,12 +132,16 @@ class UI:
         pose = f.guard if f.opponent_state == 'idle' else 'windup' if f.opponent_state == 'windup' else 'idle'
         if f.strike_timer > 0:
             pose = 'strike'
-        if f.opponent_flash > 0:
+        if f.opponent_flash > 0 and f.opponent_state != 'windup' and f.strike_timer <= 0:
             pose = 'hit'
-        enemy = self.art.opponent(t, pose, f.attack, flash=f.opponent_flash > .12)
+        progress = (1-f.opponent_timer/f.windup_duration if pose == 'windup' else
+                    1-f.strike_timer/.18 if pose == 'strike' else 0)
+        enemy = self.art.opponent(t, pose, f.attack, progress=progress, flash=f.opponent_flash > .12)
         ex, ey = 144, 69 + int(math.sin(t * 3) * 1)
         if f.state == 'opponent_down':
-            enemy = pg.transform.rotate(enemy, -min(90, f.down_elapsed * 150))
+            fall = min(1, f.down_elapsed/.65)
+            enemy = enemy.subsurface(enemy.get_bounding_rect()).copy()
+            enemy = pg.transform.rotate(enemy, -90*fall*fall)
             enemy = pg.transform.scale(enemy, (int(enemy.get_width()*.8), int(enemy.get_height()*.8)))
             ex, ey = 240-enemy.get_width()//2, 287-enemy.get_height()
         s.blit(enemy, (ex, ey))
@@ -148,11 +152,17 @@ class UI:
             py += int(shift*.18)
         if f.player_flash:
             px += int(math.sin(t*80)*4)
-        player = self.art.player(t, f.punch_hand, f.punch_high, f.punch_timer, f.block)
+        player = self.art.player(t, f.punch_hand, f.punch_high, f.punch_timer, f.block,
+                                 hurt=f.player_flash > 0, power=f.punch_power)
+        if f.player_flash and f.state != 'player_down':
+            py += int(9*f.player_flash/.3)
         player.set_alpha(165 if f.state != 'player_down' else 230)
         if f.state == 'player_down':
-            player = pg.transform.rotate(player, min(90, f.down_elapsed*150))
-            py = 310-player.get_height()//2
+            fall = min(1, f.down_elapsed/.65)
+            player = player.subsurface(player.get_bounding_rect()).copy()
+            player = pg.transform.rotate(player, 90*fall*fall)
+            px = 241-player.get_width()//2
+            py = 317-player.get_height()
         s.blit(player, (px, py))
         for x, y, vx, vy, life, color in self.sparks:
             star(s, (int(x), int(y)), 3 if life > .2 else 1, color, 4)
@@ -203,13 +213,13 @@ class UI:
             text(s, str(count), (240, 158), GOLD, 6, center=True)
         elif f.state in ('opponent_down', 'player_down'):
             label = 'BRICK IS DOWN!' if f.state == 'opponent_down' else 'GET BACK UP!'
-            panel(s, (109, 112, 262, 85), GOLD, INK)
-            text(s, label, (240, 123), GOLD, 2, center=True)
+            panel(s, (109, 49, 262, 61), GOLD, INK)
+            text(s, label, (240, 56), GOLD, 2, center=True)
             downs = f.opponent_downs if f.state == 'opponent_down' else f.player_downs
-            text(s, 'TKO' if downs >= 3 else str(min(10, int(f.down_elapsed)+1)), (240, 150), WHITE, 4, center=True)
+            text(s, 'TKO' if downs >= 3 else str(min(10, int(f.down_elapsed)+1)), (240, 78), WHITE, 3, center=True)
             if f.state == 'player_down' and downs < 3:
-                text(s, 'ALTERNATE Z / X TO STAND', (240, 214), WHITE, center=True)
-                self.bar(s, (163, 232, 154, 12), f.recovery*100, TEAL)
+                text(s, 'ALTERNATE Z / X TO STAND', (240, 119), WHITE, center=True)
+                self.bar(s, (163, 134, 154, 12), f.recovery*100, TEAL)
         self.buttons = []
 
     @staticmethod
