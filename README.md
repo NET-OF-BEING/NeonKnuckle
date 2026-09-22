@@ -41,7 +41,11 @@ controllers may require an SDL mapping. Physical controller play has not been te
 
 - Watch the wind-up cue: dodge right against a left hook, left against a right hook.
 - Uppercuts beat your block. Dodge either direction shortly before impact.
-- Dodges last 0.36 seconds: holding the direction does not make you invulnerable.
+- Wait for the teal **DODGE NOW!** cue, then tap the indicated direction.
+  The earlier gold/red warning announces the attack; do not dodge immediately.
+- Dodges last 0.65 seconds in Practice and 0.36 seconds in Arcade. The cue appears
+  0.55 / 0.26 seconds before impact respectively. Holding a direction does not
+  repeat the dodge; release and tap again for the next attack.
 - Counter during **OPEN!** for extra damage and power. A full meter unlocks Space.
 - When Brick guards his head, punch his body. When he guards low, hold Up to aim high.
 - Three knockdowns produce a TKO. Alternate punches before the ten-count to get up.

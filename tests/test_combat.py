@@ -24,6 +24,28 @@ def telegraph(fight):
 
 
 class FightTests(unittest.TestCase):
+    def test_practice_dodge_handles_earlier_reactions(self):
+        for attack in ('left', 'right', 'upper'):
+            for delay in (0, .2, .4):
+                with self.subTest(attack=attack, delay=delay):
+                    f = Fight(difficulty='practice', state='fight',
+                              opponent_state='windup', attack=attack,
+                              opponent_timer=.55)
+                    advance(f, delay)
+                    self.assertTrue(f.dodge('left' if attack == 'right' else 'right'))
+                    advance(f, .6-delay)
+                    self.assertEqual(f.player_hp, 100)
+                    self.assertEqual(f.dodges, 1)
+
+    def test_practice_dodge_still_expires_and_has_recovery_gap(self):
+        f = Fight(difficulty='practice', state='fight', opponent_timer=10)
+        f.dodge('right')
+        advance(f, .67)
+        self.assertEqual(f.dodge_timer, 0)
+        self.assertFalse(f.dodge('right'))
+        advance(f, .2)
+        self.assertTrue(f.dodge('right'))
+
     def test_intro_protects_both_boxers(self):
         f = Fight()
         self.assertFalse(f.punch('left'))

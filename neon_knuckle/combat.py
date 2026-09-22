@@ -76,8 +76,8 @@ class Fight:
                 or self.punch_timer > .1 or self.stun > 0):
             return False
         self.dodge_direction = direction
-        self.dodge_timer = .36
-        self.dodge_cooldown = .55
+        self.dodge_timer = self.dodge_duration
+        self.dodge_cooldown = self.dodge_duration + .19
         self.block = False
         self.emit('swoosh')
         return True
@@ -148,6 +148,15 @@ class Fight:
         elif self.opponent_state == 'recover' and self.opponent_timer <= 0:
             self.opponent_state = 'idle'
             self.opponent_timer = .9 - self.opponent_downs * .13
+
+    @property
+    def dodge_duration(self):
+        return .65 if self.difficulty == 'practice' else .36
+
+    @property
+    def dodge_now(self):
+        return (self.state == 'fight' and self.opponent_state == 'windup'
+                and 0 < self.opponent_timer <= self.dodge_duration - .1)
 
     @property
     def windup_duration(self):

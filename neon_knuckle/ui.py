@@ -117,8 +117,9 @@ class UI:
         pg.draw.line(s, LINE, (33, 219), (447, 219))
         text(s, 'LEFT HOOK: DODGE RIGHT / RIGHT HOOK: DODGE LEFT', (240, 230), WHITE, center=True)
         text(s, 'UPPERCUT: DODGE EITHER WAY. BLOCK WILL NOT STOP IT.', (240, 245), RED, center=True)
-        text(s, 'HIT DURING OPEN! TO BUILD YOUR POWER.', (240, 264), TEAL, center=True)
-        text(s, 'KNOCKED DOWN? ALTERNATE Z AND X TO GET UP.', (240, 279), MUTED, center=True)
+        text(s, 'WAIT FOR DODGE NOW! THEN TAP THE DIRECTION.', (240, 260), GOLD, center=True)
+        text(s, 'HIT DURING OPEN! TO BUILD YOUR POWER.', (240, 272), TEAL, center=True)
+        text(s, 'KNOCKED DOWN? ALTERNATE Z AND X TO GET UP.', (240, 286), MUTED, center=True)
         button(s, 'ENTER / RING THE BELL', (138, 302, 204, 26))
         text(s, 'PAD: X/B PUNCH  A POWER  D-PAD MOVE  START PAUSE', (240, 340), MUTED, center=True)
         self.buttons = [(pg.Rect(138, 302, 204, 26), 'confirm')]
@@ -142,7 +143,7 @@ class UI:
         s.blit(enemy, (ex, ey))
         px, py = 171, 201
         if f.dodge_timer > 0:
-            shift = math.sin(min(1, f.dodge_timer / .36)*math.pi) * 45
+            shift = math.sin(min(1, f.dodge_timer / f.dodge_duration)*math.pi) * 45
             px += int(shift) * (1 if f.dodge_direction == 'right' else -1)
             py += int(shift*.18)
         if f.player_flash:
@@ -174,8 +175,11 @@ class UI:
         # Instruction cue is legible, and placed away from heads.
         if f.state == 'fight' and f.opponent_state == 'windup':
             cue = {'left': 'LEFT HOOK - DODGE RIGHT >', 'right': '< DODGE LEFT - RIGHT HOOK', 'upper': 'UPPERCUT! DODGE LEFT OR RIGHT'}[f.attack]
-            panel(s, (122, 57, 236, 23), '#875653', INK)
-            text(s, cue, (240, 64), RED if f.attack == 'upper' else GOLD, center=True)
+            if f.dodge_now:
+                cue = {'left': 'DODGE NOW! RIGHT >', 'right': '< LEFT! DODGE NOW!',
+                       'upper': 'DODGE NOW! LEFT OR RIGHT'}[f.attack]
+            panel(s, (122, 57, 236, 23), TEAL if f.dodge_now else '#875653', INK)
+            text(s, cue, (240, 64), TEAL if f.dodge_now else RED if f.attack == 'upper' else GOLD, center=True)
             width = int(232 * max(0, f.opponent_timer / f.windup_duration))
             pg.draw.rect(s, GOLD, (124, 76, width, 2))
         elif f.state == 'fight' and f.message_timer > 0:

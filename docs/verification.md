@@ -49,3 +49,12 @@
 - Portrait/circuit layout reference:
   https://www.reddit.com/r/punchout/comments/vuegsd/i_have_finally_finished_my_ultimate_punch_out/
   by Foxaias_Rythm. Its art was inspected as a reference, not included in the game.
+
+## 2026-09-22 dodge accessibility
+
+Practice dodge duration is now 0.65 seconds, with a 0.19-second recovery gap.
+Directional DODGE NOW cue begins 0.55 seconds before impact in Practice and
+0.26 seconds in Arcade. Animation and instructions were updated.
+All 23 unit tests and the Arcade win/loss playthrough passed. Nine additional
+SDL Practice scenarios covered hooks/uppercuts with immediate, 0.2-second and
+0.4-second reactions. Rendered cue/help inspected; no desktop restart performed.
