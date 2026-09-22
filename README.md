@@ -44,6 +44,19 @@ Close the window or press Escape on the title screen to exit. Menu buttons also
 accept mouse clicks. A controller uses SDL's standard mappings; unusual unmapped
 controllers may require an SDL mapping. Physical controller play has not been tested.
 
+## Graphics and sound
+
+The ring now has neon signage, moving arena lights, canvas wear and camera flashes.
+Fighters have reflected edge lighting, extra skin/cloth/glove detail, and clearer
+hit bursts, spark trails and knockdown dust. The native pixel resolution remains
+480×360 with crisp integer scaling.
+
+Original synthesized effects distinguish body punches from head hits, with three
+variations for impacts and movement, layered power thumps, a resonant bell and a
+short victory flourish. Quiet crowd ambience plays during bouts and stops while
+paused or in menus. **M** mutes all audio; `./launch.sh --mute` starts silent.
+Combat timing and difficulty are unchanged by this presentation update.
+
 ## Winning the fight
 
 - Watch the wind-up cue: dodge right against a left hook, left against a right hook.

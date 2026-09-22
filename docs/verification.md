@@ -97,3 +97,29 @@ identity follows selection through HUD, knockdown and defeat screens.
 - Python compilation, launcher/desktop syntax and `git diff --check` passed.
 - No live desktop restart, physical controller test or human balance playtest.
   This is two selectable fights; tournament progression remains future work.
+
+## 2026-09-22 graphics and SFX polish
+
+User confirmed beating Nico in actual play and that his rhythm felt noticeably
+different from Bruno. This update keeps combat rules and hit-stop timing intact.
+
+- Added reflected fighter edges, torso/glove/trunk detail, less transparent player,
+  lighter scanlines, rafters/neon signage, canvas scuffs, moving light beams,
+  camera flashes, expanding impact bursts, particle trails and knockdown dust.
+- Replaced single-tone audio with original layered 44.1 kHz synthesis: distinct
+  head/body hits, three impact/movement variants, power/knockdown bass, leather
+  blocks, noise swooshes, resonant bell, victory notes and quiet crowd ambience.
+- Crowd pauses/stops on pause, menus, result and mute; silent-device fallback
+  survives mute toggles. Dedicated crowd/cue channels cannot be stolen by effects.
+- 37 unit tests pass, including PCM boundaries/headroom, head/body routing,
+  audio saturation/channel isolation, missing audio device and crowd lifecycle.
+- Both complete SDL win/rematch/loss playthroughs still pass with exactly the
+  previous scores/times/HP: Brick 10,230 / 14.07 / 100; Nico 10,170 / 14.06 / 100.
+- Python compilation and `git diff --check` pass. Headless 960×720 window render
+  probe averaged 9.44 ms over 360 frames;
+  this is not a live desktop frame-rate guarantee.
+- Visual review: `artifacts/presentation/graphics-preview.png`, plus fight captures.
+  Audio review artifact: `artifacts/presentation/sfx-preview.wav` (12.6 s, mono PCM
+  44.1 kHz); accompanying JSON lists effect timestamps. Full FFmpeg decode passed,
+  preview peak 8,848/32,767. Numeric checks do not establish subjective sound quality.
+- No live desktop restart, speaker audition or physical controller test performed.
