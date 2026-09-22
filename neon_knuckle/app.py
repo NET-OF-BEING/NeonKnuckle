@@ -23,7 +23,7 @@ def load_record(path):
 
 class App:
     def __init__(self, size=None, record_path=None):
-        pg.mixer.pre_init(22050, -16, 1, 512)
+        pg.mixer.pre_init(44100, -16, 2, 512)
         pg.init()
         controller.init()
         self.controllers = {}
@@ -75,6 +75,7 @@ class App:
         self.freeze = 0
         self.record_saved = False
         self.ui.sparks.clear()
+        self.ui.impacts.clear()
         self.audio.play('bell')
 
     def confirm(self):
@@ -218,6 +219,7 @@ class App:
 
     def update(self, dt):
         dt = min(.1, dt)
+        self.audio.set_crowd(self.screen == 'fight' and not self.fight.paused)
         if self.screen == 'fight' and self.fight.paused:
             return
         self.t += dt
@@ -230,13 +232,14 @@ class App:
         held = self.held | self.pad_held
         self.fight.step(dt, 'block' if held & {pg.K_DOWN, pg.K_s} else None)
         for event in self.fight.events:
-            self.audio.play(event['kind'])
+            self.audio.play(event['kind'], **{key: value for key, value in event.items() if key != 'kind'})
             self.ui.event(event)
             if event['kind'] in ('hit', 'power', 'hurt'):
                 self.freeze = .055 if event['kind'] == 'power' else .025
         self.fight.events.clear()
         if self.fight.state == 'result':
             self.screen = 'result'
+            self.audio.set_crowd(False)
             self.save_record()
 
     def save_record(self):

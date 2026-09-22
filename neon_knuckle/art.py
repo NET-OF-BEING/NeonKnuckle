@@ -123,25 +123,50 @@ def glove(s, xy, color, light, size=1):
     ellipse(s, color, (x - r - 3, y + 1, max(7, r // 2), r), INK, 1)
     pg.draw.rect(s, INK, (x - r + 3, y + r - 4, r * 2 - 6, 8))
     pg.draw.rect(s, WHITE, (x - r + 5, y + r - 3, r * 2 - 10, 4))
+    pg.draw.arc(s, INK, (x-r+3, y-r+5, r*2-6, r*2-6), 3.5, 5.8, 1)
+    pg.draw.line(s, light, (x+r-4, y-2), (x+r-5, y+5), 2)
+    for offset in (0, 3, 6):
+        pg.draw.line(s, '#98a6bd', (x-3+offset, y+r-3), (x-4+offset, y+r), 1)
+
+
+def rim_light(sprite):
+    """One-pixel reflected arena light keeps silhouettes clear of the crowd."""
+    result = pg.Surface(sprite.get_size(), pg.SRCALPHA)
+    mask = pg.mask.from_surface(sprite)
+    left = mask.to_surface(setcolor=(78, 172, 182, 220), unsetcolor=(0, 0, 0, 0))
+    right = mask.to_surface(setcolor=(227, 163, 111, 220), unsetcolor=(0, 0, 0, 0))
+    result.blit(left, (-1, 0))
+    result.blit(right, (1, -1))
+    result.blit(sprite, (0, 0))
+    return result
 
 
 class Art:
     def __init__(self):
         self.arena = self._arena()
+        self.light_layer = pg.Surface((W, H), pg.SRCALPHA)
         self.scanlines = pg.Surface((W, H), pg.SRCALPHA)
         for y in range(0, H, 3):
-            pg.draw.line(self.scanlines, (0, 0, 0, 17), (0, y), (W, y))
+            pg.draw.line(self.scanlines, (0, 0, 0, 10), (0, y), (W, y))
 
     def _arena(self):
         s = pg.Surface((W, H))
         s.fill(INK)
         for y in range(42, 181):
             pg.draw.line(s, (20 + y // 15, 22 + y // 20, 40 + y // 13), (0, y), (W, y))
+        # Steel rafters and neon wall panels frame the fighting space.
+        for x in range(0, W, 40):
+            pg.draw.line(s, '#465068', (x, 44), (x+40, 64), 2)
+            pg.draw.line(s, '#242d48', (x, 64), (x+40, 44), 2)
         # Ceiling trusses and pools of light.
         for x in (42, 138, 342, 438):
             poly(s, '#272b42', [(x-5, 48), (x+5, 48), (x+58, 165), (x-58, 165)], None)
             pg.draw.rect(s, '#76859b', (x-13, 47, 26, 4))
             pg.draw.rect(s, WHITE, (x-9, 51, 18, 3))
+        for x, color in ((9, TEAL), (404, '#e5a164')):
+            pg.draw.rect(s, '#28394f', (x-3, 69, 72, 20))
+            pg.draw.rect(s, color, (x, 72, 66, 14), 1)
+            text(s, 'DOCKSIDE' if x == 9 else 'FIGHT NIGHT', (x+33, 76), color, center=True)
         pg.draw.rect(s, '#121528', (158, 57, 164, 23))
         pg.draw.rect(s, '#56506c', (158, 57, 164, 23), 1)
         text(s, 'DOCKSIDE FIGHT CLUB', (240, 65), GOLD, center=True)
@@ -156,6 +181,8 @@ class Art:
                 pg.draw.rect(s, shirt, (x-3, y+5, 10, 10))
                 pg.draw.rect(s, skin, (x, y, 5, 6))
                 pg.draw.rect(s, '#202035', (x, y, 5, 2))
+                pg.draw.line(s, '#a2a0a0', (x, y+3), (x+3, y+3), 1)
+                pg.draw.line(s, '#263449', (x-3, y+14), (x+7, y+14), 1)
                 if rng.random() > .65:
                     pg.draw.line(s, skin, (x-3, y+7), (x-5, y+1), 2)
         poly(s, '#414a70', [(32, 169), (448, 169), (493, 329), (-13, 329)], None)
@@ -168,11 +195,22 @@ class Art:
         ellipse(s, '#435775', (139, 224, 202, 74), '#a5b9bd', 2)
         ellipse(s, '#3c4b66', (150, 231, 180, 59), '#6f91a0', 1)
         text(s, 'NK', (240, 245), '#8ca7af', 4, center=True)
+        text(s, 'DOCKSIDE / 1994', (240, 291), '#8ca7af', center=True)
+        # Worn canvas marks follow perspective, leaving the center legible.
+        for _ in range(160):
+            x, y = rng.randrange(22, 459), rng.randrange(183, 318)
+            if abs(x-240) > 74:
+                pg.draw.line(s, '#70869b', (x, y), (x+rng.randrange(2, 7), y), 1)
+        for x in (28, 450):
+            pg.draw.line(s, '#d1c9aa', (x, 184), (x-15 if x < 240 else x+15, 315), 2)
         for y, color in ((127, '#be5c6d'), (148, '#ddd5c7'), (169, '#648cba')):
             pg.draw.line(s, INK, (21, y+3), (459, y+3), 5)
             pg.draw.line(s, color, (21, y), (459, y), 3)
             pg.draw.line(s, color, (21, y), (-12, y+98), 3)
             pg.draw.line(s, color, (459, y), (492, y+98), 3)
+            pg.draw.line(s, '#f2dcc1', (21, y-1), (459, y-1), 1)
+            for x in (85, 395):
+                pg.draw.rect(s, '#e7d5b9', (x, y-2, 4, 6))
         for x in (14, 457):
             pg.draw.rect(s, '#181c31', (x, 110, 9, 94))
             pg.draw.rect(s, '#79879b', (x+2, 110, 3, 94))
@@ -180,6 +218,19 @@ class Art:
                 pg.draw.rect(s, '#df705e' if x < 30 else '#559cac', (x-4, y-5, 15, 11))
                 pg.draw.rect(s, '#ffb18b' if x < 30 else '#95c4cf', (x-3, y-5, 13, 2))
         return s
+
+    def atmosphere(self, s, t):
+        layer = self.light_layer
+        layer.fill((0, 0, 0, 0))
+        sway = int(math.sin(t*.45)*18)
+        poly(layer, (76, 219, 210, 12), [(42, 54), (50, 54),
+             (185+sway, 310), (45+sway, 310)], None)
+        poly(layer, (255, 182, 104, 12), [(430, 54), (438, 54),
+             (430-sway, 310), (295-sway, 310)], None)
+        s.blit(layer, (0, 0))
+        for n, (x, y) in enumerate(((69, 105), (408, 113), (119, 144), (356, 134))):
+            if int(t*12+n*17) % 97 < 2:
+                star(s, (x, y), 3, WHITE, 4)
 
     def opponent(self, t=0, pose='idle', attack='left', progress=0, flash=False, opponent_id='brick'):
         s = pg.Surface((192, 226), pg.SRCALPHA)
@@ -221,6 +272,13 @@ class Art:
         pg.draw.line(body, shade, (95, 86), (95, 133), 2)
         for y in (116, 128):
             pg.draw.line(body, shade, (82, y), (109, y), 2)
+        # Directional chest light, ribs and obliques give the torso volume.
+        pg.draw.lines(body, light, False, [(69, 84), (77, 80), (89, 84)], 2)
+        pg.draw.lines(body, deep, False, [(72, 111), (76, 124), (84, 134)], 1)
+        pg.draw.lines(body, deep, False, [(119, 111), (115, 125), (108, 134)], 1)
+        for y in (112, 123):
+            pg.draw.line(body, light, (84, y), (91, y+1), 2)
+            pg.draw.line(body, skin, (100, y), (106, y), 2)
         # Original lightning tattoo.
         poly(body, '#505776', [(60, 84), (54, 95), (60, 94), (55, 106), (67, 90), (61, 92)], None)
         # High-waisted trunks and gold piping.
@@ -231,6 +289,10 @@ class Art:
         pg.draw.rect(body, WHITE, (90, 138, 12, 7))
         pg.draw.line(body, GOLD, (58, 166), (83, 173), 3)
         pg.draw.line(body, GOLD, (109, 173), (135, 166), 3)
+        pg.draw.line(body, trunks_dark, (81, 149), (78, 161), 2)
+        pg.draw.line(body, trunks_light, (111, 151), (115, 164), 2)
+        for x in range(69, 128, 7):
+            pg.draw.line(body, '#c59a5e', (x, 139), (x-1, 144), 1)
         # Neck and ears.
         poly(body, shade, [(79, 54), (110, 54), (113, 73), (98, 85), (77, 73)])
         ellipse(body, shade, (69, 35, 13, 24))
@@ -277,6 +339,8 @@ class Art:
         if pose == 'hit':
             pg.draw.line(body, INK, (80, 44), (89, 44), 2)
             pg.draw.line(body, INK, (102, 44), (110, 44), 2)
+        pg.draw.line(body, light, (79, 47), (82, 50), 1)
+        pg.draw.line(body, '#e4d1b2', (110, 46), (109, 49), 1)
         # Arms articulate toward the player for punches.
         left, right = (47, 91), (145, 91)
         if pose == 'high':
@@ -337,6 +401,10 @@ class Art:
         pg.draw.line(s, shade, (70, 65), (69, 113), 2)
         pg.draw.line(s, shade, (49, 94), (62, 101), 2)
         pg.draw.line(s, shade, (77, 101), (88, 92), 2)
+        pg.draw.lines(s, '#e4b89c', False, [(39, 63), (45, 61), (57, 67)], 2)
+        pg.draw.lines(s, '#68475a', False, [(51, 75), (60, 86), (64, 96)], 1)
+        pg.draw.lines(s, '#68475a', False, [(86, 74), (79, 85), (75, 96)], 1)
+        pg.draw.line(s, '#e4b89c', (65, 74), (64, 88), 1)
         poly(s, '#7d456b', [(43, 115), (96, 115), (103, 151), (72, 154), (68, 137), (62, 155), (37, 151)])
         poly(s, '#b76482', [(44, 126), (58, 125), (56, 150), (40, 148)], None)
         pg.draw.rect(s, WHITE, (42, 115, 55, 8))
@@ -384,7 +452,7 @@ class Art:
             for x in range(8, 96, 16):
                 star(s, (x, y), 6, '#426277' if who == 'player' else '#80616a')
         if who != 'player':
-            sprite = self.opponent(pose='idle', opponent_id=who)
+            sprite = rim_light(self.opponent(pose='idle', opponent_id=who))
             crop = sprite.subsurface((53, 6, 84, 93))
             s.blit(pg.transform.scale(crop, (88, 98)), (0, -1))
         else:

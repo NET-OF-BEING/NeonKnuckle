@@ -10,6 +10,20 @@ from neon_knuckle.app import App, load_record
 
 
 class AppTests(unittest.TestCase):
+    def test_crowd_follows_fight_pause_and_menu_transitions(self):
+        self.fight()
+        self.assertTrue(self.app.audio.crowd_channel.get_busy())
+        self.key(pg.K_p)
+        self.app.update(.02)
+        self.assertFalse(self.app.audio.crowd_channel.get_busy())
+        self.key(pg.K_p)
+        self.app.update(.02)
+        self.assertTrue(self.app.audio.crowd_channel.get_busy())
+        self.key(pg.K_p)
+        self.key(pg.K_q)
+        self.app.update(.02)
+        self.assertFalse(self.app.audio.crowd_channel.get_busy())
+
     def test_opponent_selection_survives_restart_and_rematch(self):
         self.key(pg.K_RETURN)
         self.key(pg.K_DOWN)

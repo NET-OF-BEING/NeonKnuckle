@@ -4,7 +4,7 @@ import random
 import pygame as pg
 from .combat import OPPONENTS
 from .art import (W, H, INK, NAVY, PANEL, LINE, WHITE, MUTED, GOLD, TEAL, RED,
-                  text, text_width, star, ellipse, poly)
+                  text, text_width, star, ellipse, poly, rim_light)
 
 
 def panel(s, rect, color=LINE, fill=PANEL):
@@ -23,19 +23,31 @@ class UI:
         self.portraits = {who: art.portrait(who) for who in ('player', *OPPONENTS)}
         self.small = {who: pg.transform.scale(p, (28, 28)) for who, p in self.portraits.items()}
         self.sparks = []
+        self.impacts = []
         self.shake = 0
         self.buttons = []
 
     def event(self, event):
         kind = event['kind']
-        if kind in ('hit', 'power', 'hurt'):
+        if kind in ('hit', 'power', 'hurt', 'blocked', 'knockdown'):
             self.shake = .16 if kind == 'power' else .07
             x, y = (240, 148 if event.get('high') else 195) if kind != 'hurt' else (240, 262)
-            for _ in range(15 if kind == 'power' else 8):
-                self.sparks.append([x, y, random.uniform(-100, 100), random.uniform(-95, 25), .4, GOLD if kind != 'hurt' else RED])
+            if kind == 'blocked':
+                x, y = (240, 137) if event.get('target') == 'opponent' else (240, 256)
+            elif kind == 'knockdown':
+                x, y = 240, 282
+            color = RED if kind == 'hurt' else TEAL if kind == 'blocked' else GOLD
+            lifetime = .3 if kind == 'power' else .2
+            self.impacts.append([x, y, lifetime, lifetime, kind, color])
+            for _ in range(22 if kind in ('power', 'knockdown') else 10):
+                self.sparks.append([x, y, random.uniform(-145, 145), random.uniform(-135, 30),
+                                    .42, '#cedbdc' if kind == 'knockdown' else color])
 
     def update(self, dt):
         self.shake = max(0, self.shake - dt)
+        for impact in self.impacts:
+            impact[2] -= dt
+        self.impacts = [impact for impact in self.impacts if impact[2] > 0]
         for spark in self.sparks:
             spark[0] += spark[2] * dt
             spark[1] += spark[3] * dt
@@ -128,9 +140,9 @@ class UI:
 
     def fight(self, s, f, t, muted=False):
         s.blit(self.art.arena, (0, 0))
-        if int(t * 4) % 11 == 0:
-            star(s, (81, 102), 3, WHITE)
-        ellipse(s, '#344158', (180, 272, 121, 18), None)
+        self.art.atmosphere(s, t)
+        ellipse(s, '#455770', (174, 271, 132, 19), None)
+        ellipse(s, '#344158', (185, 275, 110, 12), None)
         pose = f.guard if f.opponent_state == 'idle' else 'windup' if f.opponent_state == 'windup' else 'idle'
         if f.strike_timer > 0:
             pose = 'strike'
@@ -139,6 +151,7 @@ class UI:
         progress = (1-f.opponent_timer/f.windup_duration if pose == 'windup' else
                     1-f.strike_timer/.18 if pose == 'strike' else 0)
         enemy = self.art.opponent(t, pose, f.attack, progress=progress, flash=f.opponent_flash > .12, opponent_id=f.opponent_id)
+        enemy = rim_light(enemy)
         ex, ey = 144, 69 + int(math.sin(t * 3) * 1)
         if f.state == 'opponent_down':
             fall = min(1, f.down_elapsed/.65)
@@ -156,9 +169,10 @@ class UI:
             px += int(math.sin(t*80)*4)
         player = self.art.player(t, f.punch_hand, f.punch_high, f.punch_timer, f.block,
                                  hurt=f.player_flash > 0, power=f.punch_power)
+        player = rim_light(player)
         if f.player_flash and f.state != 'player_down':
             py += int(9*f.player_flash/.3)
-        player.set_alpha(165 if f.state != 'player_down' else 230)
+        player.set_alpha(205 if f.state != 'player_down' else 240)
         if f.state == 'player_down':
             fall = min(1, f.down_elapsed/.65)
             player = player.subsurface(player.get_bounding_rect()).copy()
@@ -166,7 +180,22 @@ class UI:
             px = 241-player.get_width()//2
             py = 317-player.get_height()
         s.blit(player, (px, py))
+        for x, y, life, duration, kind, color in self.impacts:
+            progress = 1-life/duration
+            radius = int(8+progress*(34 if kind == 'power' else 18))
+            if kind == 'knockdown':
+                pg.draw.ellipse(s, '#a6b6c3', (x-radius*2, y-3, radius*4, 7), 1)
+            else:
+                pg.draw.circle(s, color, (x, y), radius, 2 if life > .1 else 1)
+                for n in range(8):
+                    angle = n*math.pi/4 + .2
+                    start = (x+math.cos(angle)*radius*.65, y+math.sin(angle)*radius*.65)
+                    end = (x+math.cos(angle)*(radius+8), y+math.sin(angle)*(radius+8))
+                    pg.draw.line(s, color, start, end, 2 if kind == 'power' else 1)
+                if progress < .45:
+                    star(s, (x, y), 12 if kind == 'power' else 7, WHITE, 4)
         for x, y, vx, vy, life, color in self.sparks:
+            pg.draw.line(s, color, (int(x-vx*.025), int(y-vy*.025)), (int(x), int(y)), 1)
             star(s, (int(x), int(y)), 3 if life > .2 else 1, color, 4)
         # The top HUD is always outside the fighting area.
         pg.draw.rect(s, INK, (0, 0, W, 44))
