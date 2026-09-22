@@ -2,9 +2,35 @@
 from dataclasses import dataclass, field
 
 
+@dataclass(frozen=True)
+class Opponent:
+    name: str
+    nickname: str
+    hud_name: str
+    style: str
+    sequence: tuple[str, ...]
+    hook_windup: float = .78
+    upper_windup: float = 1.05
+    idle_duration: float = .9
+    guard_duration: float = 1.4
+
+
+OPPONENTS = {
+    'brick': Opponent('BRUNO MALONE', 'BRICK', 'BRICK MALONE',
+                      'HEAVY HOOKS / OPEN GUARD',
+                      ('left', 'right', 'left', 'upper', 'right', 'upper')),
+    'voltage': Opponent('NICO REYES', 'VOLTAGE', 'NICO REYES',
+                        'FAST HOOKS / LATE UPPERCUT',
+                        ('right', 'right', 'upper', 'left', 'upper', 'left'),
+                        hook_windup=.64, upper_windup=1.3,
+                        idle_duration=.72, guard_duration=.95),
+}
+
+
 @dataclass
 class Fight:
     difficulty: str = 'arcade'
+    opponent_id: str = field(default='brick', kw_only=True)
     state: str = 'intro'
     state_timer: float = 2.8
     paused: bool = False
@@ -48,6 +74,10 @@ class Fight:
     message: str = 'ROUND ONE'
     message_timer: float = 0.0
     events: list = field(default_factory=list)
+
+    @property
+    def opponent(self):
+        return OPPONENTS[self.opponent_id]
 
     def emit(self, kind, **data):
         self.events.append({'kind': kind, **data})
@@ -136,9 +166,9 @@ class Fight:
             self.guard_timer -= dt
             if self.guard_timer <= 0:
                 self.guard = 'low' if self.guard == 'high' else 'high'
-                self.guard_timer = 1.4
+                self.guard_timer = self.opponent.guard_duration
             if self.opponent_timer <= 0:
-                sequence = ('left', 'right', 'left', 'upper', 'right', 'upper')
+                sequence = self.opponent.sequence
                 self.attack = sequence[self.attack_index % len(sequence)]
                 self.attack_index += 1
                 self.opponent_state = 'windup'
@@ -149,7 +179,7 @@ class Fight:
         elif self.opponent_state == 'recover' and self.opponent_timer <= 0:
             self.opponent_state = 'idle'
             self.counter_open = False
-            self.opponent_timer = .9 - self.opponent_downs * .13
+            self.opponent_timer = self.opponent.idle_duration - self.opponent_downs * .13
 
     @property
     def dodge_duration(self):
@@ -162,7 +192,7 @@ class Fight:
 
     @property
     def windup_duration(self):
-        base = 1.05 if self.attack == 'upper' else .78
+        base = self.opponent.upper_windup if self.attack == 'upper' else self.opponent.hook_windup
         return base + (.28 if self.difficulty == 'practice' else 0) - self.opponent_downs * .08
 
     def _impact(self):

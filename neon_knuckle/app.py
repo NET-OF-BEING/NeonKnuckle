@@ -7,7 +7,7 @@ import pygame as pg
 from pygame._sdl2 import controller
 from .art import Art, W, H, INK
 from .audio import Audio
-from .combat import Fight
+from .combat import Fight, OPPONENTS
 from .ui import UI
 
 
@@ -45,6 +45,7 @@ class App:
         self.fight = Fight()
         self.screen = 'title'
         self.difficulty = 'practice'
+        self.opponent_id = 'brick'
         self.running = True
         self.held = set()
         self.pad_held = set()
@@ -66,7 +67,7 @@ class App:
             pass
 
     def start_fight(self):
-        self.fight = Fight(self.difficulty)
+        self.fight = Fight(self.difficulty, opponent_id=self.opponent_id)
         self.screen = 'fight'
         self.held.clear()
         self.pad_held.clear()
@@ -103,6 +104,11 @@ class App:
         self.difficulty = 'arcade' if self.difficulty == 'practice' else 'practice'
         self.audio.play('menu')
 
+    def change_opponent(self):
+        opponents = tuple(OPPONENTS)
+        self.opponent_id = opponents[(opponents.index(self.opponent_id)+1) % len(opponents)]
+        self.audio.play('menu')
+
     def toggle_fullscreen(self):
         if not self.fullscreen:
             self.window_size = self.window.get_size()
@@ -131,7 +137,9 @@ class App:
                        (event.pos[1]-self.viewport.y)*H/self.viewport.h)
                 for rect, action in self.ui.buttons:
                     if rect.collidepoint(pos):
-                        {'confirm': self.confirm, 'back': self.back, 'difficulty': self.change_difficulty}[action]()
+                        {'confirm': self.confirm, 'back': self.back,
+                         'difficulty': self.change_difficulty,
+                         'opponent': self.change_opponent}[action]()
                         break
         elif event.type == pg.CONTROLLERDEVICEADDED:
             self.add_controller(event.device_index)
@@ -184,6 +192,8 @@ class App:
             self.back()
         elif self.screen == 'roster' and key in (pg.K_LEFT, pg.K_RIGHT, pg.K_a, pg.K_d):
             self.change_difficulty()
+        elif self.screen == 'roster' and key in (pg.K_UP, pg.K_DOWN, pg.K_w, pg.K_s):
+            self.change_opponent()
         elif self.screen == 'fight':
             f = self.fight
             if key == pg.K_p:
@@ -248,7 +258,7 @@ class App:
         if self.screen == 'title':
             self.ui.title(s, self.t, self.record)
         elif self.screen == 'roster':
-            self.ui.roster(s, self.t, self.difficulty, self.record)
+            self.ui.roster(s, self.t, self.difficulty, self.record, self.opponent_id)
         elif self.screen == 'instructions':
             self.ui.instructions(s, self.t)
         elif self.screen == 'fight':

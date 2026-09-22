@@ -181,9 +181,13 @@ class Art:
                 pg.draw.rect(s, '#ffb18b' if x < 30 else '#95c4cf', (x-3, y-5, 13, 2))
         return s
 
-    def opponent(self, t=0, pose='idle', attack='left', progress=0, flash=False):
+    def opponent(self, t=0, pose='idle', attack='left', progress=0, flash=False, opponent_id='brick'):
         s = pg.Surface((192, 226), pg.SRCALPHA)
-        skin, light, shade, deep = '#d69a74', '#f6c294', '#aa6657', '#794c4c'
+        voltage = opponent_id == 'voltage'
+        skin, light, shade, deep = (('#a96d50', '#db9f70', '#794b43', '#503641') if voltage
+                                    else ('#d69a74', '#f6c294', '#aa6657', '#794c4c'))
+        trunks, trunks_light, trunks_dark = (('#663c99', '#a269ce', '#40285e') if voltage
+                                             else ('#206577', '#2c8d98', '#154456'))
         bob = int(math.sin(t * 4) * 2) if pose == 'idle' else 0
         progress = max(0, min(1, progress))
         lean = 0
@@ -212,7 +216,7 @@ class Art:
         poly(body, shade, [(55, 79), (68, 87), (71, 116), (80, 139), (66, 142), (60, 117), (46, 95)], None)
         poly(body, shade, [(115, 78), (136, 78), (146, 95), (129, 120), (127, 140), (110, 140), (117, 112)], None)
         poly(body, light, [(77, 77), (91, 82), (92, 102), (74, 101), (65, 90)], None)
-        poly(body, '#e9ad81', [(98, 82), (117, 77), (128, 89), (117, 103), (98, 101)], None)
+        poly(body, light if voltage else '#e9ad81', [(98, 82), (117, 77), (128, 89), (117, 103), (98, 101)], None)
         pg.draw.lines(body, deep, False, [(68, 103), (82, 107), (94, 104), (109, 107), (125, 102)], 2)
         pg.draw.line(body, shade, (95, 86), (95, 133), 2)
         for y in (116, 128):
@@ -220,9 +224,9 @@ class Art:
         # Original lightning tattoo.
         poly(body, '#505776', [(60, 84), (54, 95), (60, 94), (55, 106), (67, 90), (61, 92)], None)
         # High-waisted trunks and gold piping.
-        poly(body, '#206577', [(65, 137), (128, 137), (137, 168), (106, 176), (97, 158), (85, 176), (57, 168)])
-        poly(body, '#2c8d98', [(69, 147), (86, 146), (89, 159), (82, 169), (63, 165)], None)
-        poly(body, '#154456', [(117, 146), (127, 145), (134, 166), (111, 172), (103, 158)], None)
+        poly(body, trunks, [(65, 137), (128, 137), (137, 168), (106, 176), (97, 158), (85, 176), (57, 168)])
+        poly(body, trunks_light, [(69, 147), (86, 146), (89, 159), (82, 169), (63, 165)], None)
+        poly(body, trunks_dark, [(117, 146), (127, 145), (134, 166), (111, 172), (103, 158)], None)
         pg.draw.rect(body, GOLD, (64, 137, 65, 9))
         pg.draw.rect(body, WHITE, (90, 138, 12, 7))
         pg.draw.line(body, GOLD, (58, 166), (83, 173), 3)
@@ -254,6 +258,22 @@ class Art:
         poly(body, INK, [(88, 57), (107, 55), (105, 64), (93, 65)])
         pg.draw.line(body, WHITE, (91, 59), (104, 58), 3)
         pg.draw.line(body, '#dba77e', (94, 69), (102, 68), 2)
+        if voltage:
+            # Close-cropped sides, tall crest, clean-shaven angular jaw.
+            poly(body, skin, [(75, 39), (73, 25), (82, 14), (103, 13),
+                              (115, 26), (116, 38), (106, 29), (83, 29)])
+            poly(body, '#24263e', [(83, 29), (85, 11), (91, 2), (96, 9),
+                                  (102, 4), (107, 17), (106, 30)])
+            pg.draw.line(body, '#c996ef', (94, 9), (94, 25), 3)
+            poly(body, skin, [(77, 51), (88, 56), (102, 54), (114, 49),
+                              (110, 63), (102, 70), (88, 69), (79, 62)], None)
+            poly(body, shade, [(108, 55), (114, 49), (110, 63), (102, 70),
+                               (97, 67)], None)
+            pg.draw.line(body, INK, (88, 60), (104, 58), 2)
+            pg.draw.line(body, WHITE, (90, 60), (102, 59), 1)
+            pg.draw.line(body, TEAL, (74, 31), (115, 31), 4)
+            # A bright chevron identifies the trunks even at native scale.
+            poly(body, TEAL, [(71, 148), (82, 154), (74, 166), (86, 154), (75, 146)], None)
         if pose == 'hit':
             pg.draw.line(body, INK, (80, 44), (89, 44), 2)
             pg.draw.line(body, INK, (102, 44), (110, 44), 2)
@@ -292,8 +312,12 @@ class Art:
             pg.draw.line(body, skin, shoulder, elbow, 13)
             pg.draw.line(body, light, (shoulder[0]-2, shoulder[1]-2), (elbow[0]-2, elbow[1]-2), 5)
             pg.draw.line(body, skin, elbow, hand, 13)
-            glove(body, hand, '#d35b40', '#ff9b53', 1.2 if pose == 'strike' else 1)
+            glove(body, hand, '#2768bb' if voltage else '#d35b40', '#70dcff' if voltage else '#ff9b53', 1.2 if pose == 'strike' else 1)
         s.blit(body, (lean, bob))
+        if voltage:
+            slim = pg.transform.scale(s, (170, 226))
+            s.fill((0, 0, 0, 0))
+            s.blit(slim, (11, 0))
         if flash:
             tint = pg.Surface(s.get_size(), pg.SRCALPHA)
             tint.fill((80, 30, 20, 0))
@@ -359,8 +383,8 @@ class Art:
         for y in range(8, 96, 16):
             for x in range(8, 96, 16):
                 star(s, (x, y), 6, '#426277' if who == 'player' else '#80616a')
-        if who == 'opponent':
-            sprite = self.opponent(pose='idle')
+        if who != 'player':
+            sprite = self.opponent(pose='idle', opponent_id=who)
             crop = sprite.subsurface((53, 6, 84, 93))
             s.blit(pg.transform.scale(crop, (88, 98)), (0, -1))
         else:

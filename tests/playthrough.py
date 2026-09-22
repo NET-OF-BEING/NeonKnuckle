@@ -11,9 +11,9 @@ import pygame as pg
 from neon_knuckle.app import App
 
 
-def main():
-    destination = Path('artifacts')
-    destination.mkdir(exist_ok=True)
+def main(opponent_id):
+    destination = Path('artifacts') / opponent_id
+    destination.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory() as temp:
         app = App(size=(960,720), record_path=Path(temp)/'record.json')
 
@@ -29,6 +29,8 @@ def main():
 
         capture('01-title')
         press(pg.K_RETURN)
+        if opponent_id == 'voltage':
+            press(pg.K_DOWN)
         # Verify both difficulty choices before using Arcade for the full win.
         press(pg.K_RIGHT)
         assert app.difficulty == 'arcade'
@@ -37,6 +39,7 @@ def main():
         capture('03-controls')
         press(pg.K_RETURN)
         capture('04-intro')
+        assert app.fight.opponent_id == opponent_id
         captures = set()
         for tick in range(60*220):
             f = app.fight
@@ -80,6 +83,7 @@ def main():
                    'hp': app.fight.player_hp, 'counters': app.fight.counters,
                    'dodges': app.fight.dodges, 'finish': app.fight.finish}
         press(pg.K_RETURN)
+        assert app.fight.opponent_id == opponent_id
         for tick in range(60*130):
             app.update(1/60)
             if tick % 60 == 0:
@@ -89,12 +93,13 @@ def main():
         assert app.fight.winner == 'opponent'
         assert app.fight.finish == 'KO'
         capture('10-defeat')
-        pg.image.save(app.art.icon(), 'assets/icon.png')
-        result = {'victory': victory, 'idle_loss': app.fight.finish, 'screenshots': 10}
+        result = {'opponent': opponent_id, 'victory': victory,
+                  'idle_loss': app.fight.finish, 'screenshots': 10}
         (destination/'playthrough.json').write_text(json.dumps(result, indent=2)+'\n')
         print(json.dumps(result, indent=2))
         pg.quit()
 
 
 if __name__ == '__main__':
-    main()
+    for opponent_id in ('brick', 'voltage'):
+        main(opponent_id)

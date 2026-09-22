@@ -2,6 +2,7 @@
 import math
 import random
 import pygame as pg
+from .combat import OPPONENTS
 from .art import (W, H, INK, NAVY, PANEL, LINE, WHITE, MUTED, GOLD, TEAL, RED,
                   text, text_width, star, ellipse, poly)
 
@@ -19,7 +20,7 @@ def button(s, label, rect, selected=True):
 class UI:
     def __init__(self, art):
         self.art = art
-        self.portraits = {who: art.portrait(who) for who in ('player', 'opponent')}
+        self.portraits = {who: art.portrait(who) for who in ('player', *OPPONENTS)}
         self.small = {who: pg.transform.scale(p, (28, 28)) for who, p in self.portraits.items()}
         self.sparks = []
         self.shake = 0
@@ -71,32 +72,33 @@ class UI:
         button(s, 'ENTER THE CIRCUIT  >', (139, 233, 202, 29))
         text(s, 'PRESS ENTER / CONTROLLER A', (240, 274), WHITE if int(t*2)%2 else MUTED, center=True)
         text(s, f"BEST SCORE  {record.get('best', 0):06d}", (240, 302), GOLD, center=True)
-        text(s, 'ORIGINAL ARCADE BOXING / FIRST FIGHT', (240, 335), MUTED, center=True)
+        text(s, 'ORIGINAL ARCADE BOXING / TWO CHALLENGERS', (240, 335), MUTED, center=True)
         self.buttons = [(pg.Rect(139, 233, 202, 29), 'confirm')]
 
-    def roster(self, s, t, difficulty, record):
+    def roster(self, s, t, difficulty, record, opponent_id='brick'):
+        opponent = OPPONENTS[opponent_id]
         self.base(s, t)
         text(s, 'DOCKSIDE CIRCUIT', (240, 40), GOLD, 2, center=True)
-        text(s, 'THE OPENING BOUT', (240, 65), MUTED, center=True)
+        text(s, 'CHOOSE YOUR OPPONENT / UP + DOWN', (240, 65), MUTED, center=True)
         # Portrait frames and patterns echo the supplied circuit roster reference.
-        for who, x, color in (('player', 54, TEAL), ('opponent', 322, GOLD)):
+        for who, x, color in (('player', 54, TEAL), (opponent_id, 322, GOLD)):
             panel(s, (x-3, 88, 110, 114), color, INK)
             s.blit(self.portraits[who], (x, 91))
             pg.draw.rect(s, color, (x-3, 205, 110, 15))
-            text(s, 'CHALLENGER' if who == 'player' else '#1 / GATEKEEPER', (x+52, 209), INK, center=True, shadow=False)
+            text(s, 'CHALLENGER' if who == 'player' else ('#1 / GATEKEEPER' if opponent_id == 'brick' else '#2 / LIVE WIRE'), (x+52, 209), INK, center=True, shadow=False)
         text(s, 'VS', (240, 130), WHITE, 4, center=True)
         text(s, 'JAX VEGA', (106, 230), WHITE, 2, center=True)
-        text(s, 'BRUNO MALONE', (374, 230), WHITE, 1, center=True)
+        text(s, opponent.name, (374, 230), WHITE, 1, center=True)
         text(s, '"SWITCH"'.replace('"', ''), (106, 252), TEAL, center=True)
-        text(s, 'BRICK', (374, 248), GOLD, 2, center=True)
+        text(s, opponent.nickname, (374, 248), GOLD, 2, center=True)
         text(s, 'FAST HANDS / BIG HEART', (106, 270), MUTED, center=True)
-        text(s, 'HEAVY HOOKS / OPEN GUARD', (374, 270), MUTED, center=True)
+        text(s, opponent.style, (374, 270), MUTED, center=True)
         text(s, '<', (161, 294), GOLD)
         text(s, f'{difficulty.upper()} MODE', (240, 294), GOLD, center=True)
         text(s, '>', (314, 294), GOLD)
         button(s, 'ENTER / STEP INTO THE RING', (134, 310, 212, 25))
-        text(s, 'LEFT / RIGHT: DIFFICULTY     ESC: BACK', (240, 345), MUTED, center=True)
-        self.buttons = [(pg.Rect(145, 285, 190, 21), 'difficulty'), (pg.Rect(134, 310, 212, 25), 'confirm')]
+        text(s, 'UP DOWN: RIVAL / LEFT RIGHT: MODE / ESC: BACK', (240, 345), MUTED, center=True)
+        self.buttons = [(pg.Rect(305, 85, 139, 195), 'opponent'), (pg.Rect(145, 285, 190, 21), 'difficulty'), (pg.Rect(134, 310, 212, 25), 'confirm')]
 
     def instructions(self, s, t):
         self.base(s, t)
@@ -136,7 +138,7 @@ class UI:
             pose = 'hit'
         progress = (1-f.opponent_timer/f.windup_duration if pose == 'windup' else
                     1-f.strike_timer/.18 if pose == 'strike' else 0)
-        enemy = self.art.opponent(t, pose, f.attack, progress=progress, flash=f.opponent_flash > .12)
+        enemy = self.art.opponent(t, pose, f.attack, progress=progress, flash=f.opponent_flash > .12, opponent_id=f.opponent_id)
         ex, ey = 144, 69 + int(math.sin(t * 3) * 1)
         if f.state == 'opponent_down':
             fall = min(1, f.down_elapsed/.65)
@@ -169,9 +171,9 @@ class UI:
         # The top HUD is always outside the fighting area.
         pg.draw.rect(s, INK, (0, 0, W, 44))
         s.blit(self.small['player'], (7, 8))
-        s.blit(self.small['opponent'], (445, 8))
+        s.blit(self.small[f.opponent_id], (445, 8))
         text(s, 'JAX VEGA', (42, 6), TEAL)
-        text(s, 'BRICK MALONE', (325, 6), GOLD)
+        text(s, f.opponent.hud_name, (325, 6), GOLD)
         self.bar(s, (42, 19, 143, 9), f.player_hp, TEAL)
         self.bar(s, (295, 19, 143, 9), f.opponent_hp, GOLD, reverse=True)
         text(s, f'{int(f.player_hp):03d}', (42, 32), MUTED)
@@ -212,7 +214,7 @@ class UI:
             text(s, 'GET READY', (240, 140), WHITE, center=True)
             text(s, str(count), (240, 158), GOLD, 6, center=True)
         elif f.state in ('opponent_down', 'player_down'):
-            label = 'BRICK IS DOWN!' if f.state == 'opponent_down' else 'GET BACK UP!'
+            label = f'{f.opponent.nickname} IS DOWN!' if f.state == 'opponent_down' else 'GET BACK UP!'
             panel(s, (109, 49, 262, 61), GOLD, INK)
             text(s, label, (240, 56), GOLD, 2, center=True)
             downs = f.opponent_downs if f.state == 'opponent_down' else f.player_downs
@@ -250,10 +252,10 @@ class UI:
         won = f.winner == 'player'
         text(s, 'VICTORY' if won else 'KEEP FIGHTING', (240, 42), GOLD if won else RED, 3, center=True)
         text(s, f.finish, (240, 77), TEAL, 2, center=True)
-        who = 'player' if won else 'opponent'
+        who = 'player' if won else f.opponent_id
         panel(s, (51, 110, 116, 120), GOLD)
         s.blit(pg.transform.scale(self.portraits[who], (110, 114)), (54, 113))
-        text(s, 'JAX VEGA' if won else 'BRICK MALONE', (109, 244), WHITE, center=True)
+        text(s, 'JAX VEGA' if won else f.opponent.hud_name, (109, 244), WHITE, center=True)
         stats = [('SCORE', f'{f.score:06d}'), ('TIME', f'{int(f.elapsed)//60}:{int(f.elapsed)%60:02d}'),
                  ('ACCURACY', f'{round(f.landed/max(1,f.thrown)*100)}%'), ('COUNTERS', str(f.counters)),
                  ('CLEAN DODGES', str(f.dodges)), ('BEST SCORE', f"{record.get('best',0):06d}")]

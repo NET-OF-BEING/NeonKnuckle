@@ -10,6 +10,40 @@ from neon_knuckle.app import App, load_record
 
 
 class AppTests(unittest.TestCase):
+    def test_opponent_selection_survives_restart_and_rematch(self):
+        self.key(pg.K_RETURN)
+        self.key(pg.K_DOWN)
+        self.key(pg.K_RIGHT)
+        self.key(pg.K_RETURN)
+        self.key(pg.K_RETURN)
+        self.assertEqual(self.app.fight.opponent_id, 'voltage')
+        self.assertEqual(self.app.fight.difficulty, 'arcade')
+        self.key(pg.K_p)
+        self.key(pg.K_r)
+        self.assertEqual(self.app.fight.opponent_id, 'voltage')
+        self.app.fight.end('opponent', 'KO')
+        self.app.update(.02)
+        self.app.render()
+        self.key(pg.K_RETURN)
+        self.assertEqual(self.app.fight.opponent_id, 'voltage')
+        self.key(pg.K_p)
+        self.key(pg.K_q)
+        self.key(pg.K_UP)
+        self.key(pg.K_RETURN)
+        self.key(pg.K_RETURN)
+        self.assertEqual(self.app.fight.opponent_id, 'brick')
+
+    def test_mouse_and_controller_can_select_opponent(self):
+        self.key(pg.K_RETURN)
+        self.app.render()
+        rect = next(rect for rect, action in self.app.ui.buttons if action == 'opponent')
+        self.app.handle_event(pg.event.Event(pg.MOUSEBUTTONDOWN, button=1,
+                                            pos=(rect.centerx*2, rect.centery*2)))
+        self.assertEqual(self.app.opponent_id, 'voltage')
+        self.app.handle_event(pg.event.Event(pg.CONTROLLERBUTTONDOWN,
+                                            button=pg.CONTROLLER_BUTTON_DPAD_UP))
+        self.assertEqual(self.app.opponent_id, 'brick')
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.app = App(size=(960,720), record_path=Path(self.temp.name)/'record.json')
