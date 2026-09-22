@@ -77,3 +77,23 @@ Animation update: progressive hook wind-ups and uppercut crouch, strike retracti
 26 tests and SDL win/loss playthrough passed with unchanged combat results.
 Rendered attack/fall phase sheets and revised knockdown overlay inspected.
 No live desktop restart or human playtest.
+
+## 2026-09-22 second opponent
+
+Added Nico “Voltage” Reyes with original portrait/ring variations, faster hooks,
+a delayed uppercut, a distinct attack sequence and faster guard changes. Matchup
+selection supports keyboard Up/Down, mouse portrait clicks and controller D-pad.
+Difficulty selection, restart and rematch retain the chosen opponent. Fighter
+identity follows selection through HUD, knockdown and defeat screens.
+
+- 30 unit tests pass, including both opponents' delayed-reaction counter wins
+  and blind-punch losses in Practice/Arcade, and selection/restart/rematch input tests.
+- SDL keyboard playthrough passes for both opponents: Brick 10,230-point TKO
+  at 14.07 fight seconds; Voltage 10,170-point TKO at 14.06 seconds. Both retain
+  100 HP, land 12 counters, evade five attacks, then lose rematches by count-out.
+- Twenty captures and two JSON reports are saved separately under
+  `artifacts/brick/` and `artifacts/voltage/`; temporary records protect real scores.
+- Inspected Voltage matchup, attack cue and knockdown captures.
+- Python compilation, launcher/desktop syntax and `git diff --check` passed.
+- No live desktop restart, physical controller test or human balance playtest.
+  This is two selectable fights; tournament progression remains future work.

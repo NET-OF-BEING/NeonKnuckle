@@ -1,8 +1,8 @@
 # Neon Knuckle
 
 An original retro boxing game for Linux, inspired by the rhythm, perspective and
-pixel presentation of 1990s arcade boxing. **First-fight prototype:** Jax “Switch”
-Vega faces Bruno “Brick” Malone in the Dockside Circuit. All game art and sound
+pixel presentation of 1990s arcade boxing. **Two-opponent prototype:** Jax “Switch”
+Vega faces Bruno “Brick” Malone or Nico “Voltage” Reyes in the Dockside Circuit. All game art and sound
 effects are original; no ROM, Nintendo sprites or other downloaded artwork is used.
 
 ## Play
@@ -14,8 +14,15 @@ Open **Neon Knuckle** from the application menu/Desktop, or run:
 ```
 
 Enter advances through the title, matchup and controls screens. On the matchup
-screen, Left/Right switches between Practice (default) and Arcade. This build has
-one player character and one opponent; the portrait screen presents that matchup.
+screen, Up/Down selects the opponent and Left/Right switches between Practice
+(default) and Arcade. Click the opponent portrait or use controller D-pad Up/Down
+to switch opponents. Restart and rematch keep your current selection.
+
+- **Bruno “Brick” Malone:** the original gatekeeper, with heavy hooks and a steady rhythm.
+- **Nico “Voltage” Reyes:** quicker hooks, faster guard changes, and a delayed uppercut.
+  Wait for the teal cue instead of guessing the timing from the previous punch.
+
+Both opponents are available immediately. Circuit progression is not implemented yet.
 
 | Action | Keyboard | SDL game controller |
 |---|---|---|
@@ -50,10 +57,10 @@ controllers may require an SDL mapping. Physical controller play has not been te
 - Only a successful dodge opens the counter window; taking or blocking a punch
   does not. Ordinary clean punches deal 3 damage, dodge counters deal 12, and
   power counters deal 29. Repeated body punches alone are a losing strategy.
-- When Brick guards his head, punch his body. When he guards low, hold Up to aim high.
+- When your opponent guards his head, punch his body. When he guards low, hold Up to aim high.
 - Three knockdowns produce a TKO. Alternate punches before the ten-count to get up.
 - After three minutes, knockdowns decide the winner, then remaining health. A tie
-  goes to the gatekeeper. Practice increases wind-up time and reduces incoming damage.
+  goes to the opponent. Practice increases wind-up time and reduces incoming damage.
 
 ## Installation on another Linux machine
 
@@ -73,7 +80,7 @@ adjust it if relocating. No network or server is required after setup.
 ## Local data and troubleshooting
 
 - Best score: `$XDG_DATA_HOME/neon-knuckle/record.json`, default
-  `~/.local/share/neon-knuckle/record.json`. Practice and Arcade share the prototype score.
+  `~/.local/share/neon-knuckle/record.json`. Both opponents and difficulties share the prototype best score.
 - Launcher log: `$XDG_STATE_HOME/neon-knuckle/launch.log`, default
   `~/.local/state/neon-knuckle/launch.log`.
 - Audio failure falls back to silent play. `./launch.sh --mute` starts muted.
@@ -94,8 +101,9 @@ desktop-file-validate neon-knuckle.desktop
 ```
 
 The playthrough drives SDL keyboard events through the normal application. It wins
-a complete Arcade fight, verifies score persistence, rematches and loses by count-out,
-and saves ten screenshots plus a JSON report under `artifacts/`. It uses temporary
+a complete Arcade fight against each opponent, verifies score persistence, rematches
+and loses by count-out. It saves ten screenshots plus a JSON report per opponent
+under `artifacts/brick/` and `artifacts/voltage/`. It uses temporary
 records so tests do not overwrite your best score.
 
 `combat.py` contains the independent rules; `art.py`, `ui.py`, and `audio.py` handle
