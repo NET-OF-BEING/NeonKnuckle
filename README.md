@@ -5,6 +5,8 @@ pixel presentation of 1990s arcade boxing. **Two-opponent prototype:** Jax “Sw
 Vega faces Bruno “Brick” Malone or Nico “Voltage” Reyes in the Dockside Circuit. All game art and sound
 effects are original; no ROM, Nintendo sprites or other downloaded artwork is used.
 
+![Neon Knuckle title screen, showing Jax Vega and Bruno Malone](docs/images/title.png)
+
 ## Play
 
 Open **Neon Knuckle** from the application menu/Desktop, or run:
@@ -56,6 +58,19 @@ variations for impacts and movement, layered power thumps, a resonant bell and a
 short victory flourish. Quiet crowd ambience plays during bouts and stops while
 paused or in menus. **M** mutes all audio; `./launch.sh --mute` starts silent.
 Combat timing and difficulty are unchanged by this presentation update.
+
+## Artwork and screenshots
+
+The game renders its original pixel art in real time. These captures show both
+available rivals and the current in-ring presentation.
+
+![Gameplay preview showing Brick and Voltage in the ring](docs/images/gameplay-preview.png)
+
+| Bruno “Brick” Malone | Nico “Voltage” Reyes |
+|---|---|
+| ![Jax Vega versus Brick matchup screen](docs/images/brick-matchup.png) | ![Jax Vega versus Voltage matchup screen](docs/images/voltage-matchup.png) |
+
+The [launcher icon](assets/NeonKnuckleIcon.png) is also included in the repository.
 
 ## Winning the fight
 
